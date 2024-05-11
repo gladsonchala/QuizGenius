@@ -15,8 +15,8 @@ class Questions:
         for category in parsed_data['trivia_categories']:
             print(f"Category ID: {category['id']}, Name: {category['name']}")
 
-    def trueFalse(self, amount):
-        self.path = f'/api.php?type=boolean&amount={amount}&category=9'
+    def trueFalse(self, amount = 3, category = 9):
+        self.path = f'/api.php?type=boolean&amount={amount}&category={category}'
         self.score = 0
         response = requests.get(self.base_url + self.path)
         parsed_data = json.loads(response.text)
@@ -41,19 +41,20 @@ class Questions:
 
             print("Quiz completed! You answered", self.score, "out of", amount)
 
-    def choiceQuestions(self, amount):
-        self.path = f'/api.php?amount={amount}&category=9&type=multiple'
+    def choiceQuestions(self, amount = 3, category = 9):
+        self.path = f'/api.php?amount={amount}&category={category}&type=multiple'
         self.score = 0
         response = requests.get(self.base_url + self.path)
         parsed_data = json.loads(response.text)
         if response.status_code == 200 and parsed_data['response_code'] == 0:
             for index, question in enumerate(parsed_data['results'], start=1):
-                print(f"Question {index}: {question['question']}")
+                question_text = question['question'].replace(
+                    "&quot;", '"').replace("&#039;", "'")
+                print(f"Question {index}: {question_text}")
 
                 answers = [question['correct_answer']] + \
                     question['incorrect_answers']
-                answers = [answer.replace("&quot;", '"') for answer in answers]
-                answers = [answer.replace("&#039;", "'") for answer in answers]
+                answers = [answer.replace("&quot;", '"').replace("&#039;", "'") for answer in answers]
 
                 random.shuffle(answers)
 
@@ -75,7 +76,45 @@ class Questions:
 
             print("Quiz completed! You answered", self.score, "out of", amount)
 
+def main():
+    q = Questions()
+    while True:
+        print("______________________________________")
+        print("|~~~ 🎉 Welcome to QuizGenius! 🎉 ~~~|")
+        print("|~~~ 🎮 1. Start the game         ~~~|")
+        print("|~~~ 📚 2. View categories        ~~~|")
+        print("|~~~ 🚪 3. Quit the game          ~~~|")
+        print("|____________________________________|")
+        user_choice = input("Enter your choice: ")
 
-# q = Questions()
-# q.trueFalse(5)
-# q.choiceQuestions(5)
+        if user_choice == '1':
+            print("\n1. True/False questions ❓")
+            print("2. Multiple choice questions 📝")
+            question_type = input("Choose the type of questions: ")
+            amount = input("Enter the number of questions you want to answer: ")
+            category = input("Enter the category ID you want (or press Enter to use the default): ")
+
+            if category == '':
+                category = 9  # default category
+            else:
+                category = int(category)
+
+            if question_type == '1':
+                q.trueFalse(int(amount), category)
+            elif question_type == '2':
+                q.choiceQuestions(int(amount), category)
+            else:
+                print("Invalid choice. Please try again. 😞")
+
+        elif user_choice == '2':
+            q.getCategories()
+
+        elif user_choice == '3':
+            print("Thank you for playing QuizGenius. Goodbye! 👋😊")
+            break
+
+        else:
+            print("Invalid choice. Please try again. 😞")
+            
+if __name__ == "__main__":
+    main()
