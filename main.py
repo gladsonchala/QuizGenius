@@ -15,7 +15,7 @@ class Questions:
         for category in parsed_data['trivia_categories']:
             print(f"Category ID: {category['id']}, Name: {category['name']}")
 
-    def trueFalse(self, amount = 3, category = 9):
+    def trueFalse(self, amount=3, category=9):
         self.path = f'/api.php?type=boolean&amount={amount}&category={category}'
         self.score = 0
         response = requests.get(self.base_url + self.path)
@@ -25,11 +25,20 @@ class Questions:
                 question_text = question['question'].replace(
                     "&quot;", '"').replace("&#039;", "'")
                 print(f"Question {index}: {question_text}")
-                print("True or False?")
-                user_answer = input("Enter your answer: ").capitalize()
+                print("True or False? (Enter 'True/False', 'T/F', or '1/2')")
+                
+                # Valid input options
+                valid_inputs = {'true': 'true', 'false': 'false', 't': 'true', 'f': 'false', '1': 'true', '2': 'false'}
+                
+                user_answer = input("Enter your answer: ").lower()
+                
+                if user_answer in valid_inputs:
+                    user_answer = valid_inputs[user_answer]
+                else:
+                    print("Invalid input. Please enter 'True/False', 'T/F', or '1/2'")
+                    continue
 
-                correct_answer = question['correct_answer'].replace(
-                    "&quot;", '"').replace("&#039;", "'")
+                correct_answer = question['correct_answer'].lower()
 
                 if user_answer == correct_answer:
                     self.score += 1
@@ -40,6 +49,7 @@ class Questions:
                 print("\n")
 
             print("Quiz completed! You answered", self.score, "out of", amount)
+
 
     def choiceQuestions(self, amount = 3, category = 9):
         self.path = f'/api.php?amount={amount}&category={category}&type=multiple'
@@ -104,7 +114,7 @@ def main():
             elif question_type == '2':
                 q.choiceQuestions(int(amount), category)
             else:
-                print("Invalid choice. Please try again. 😞")
+                print("Invalid choice. Please try again by choosing the number of your selected choice. 😞")
 
         elif user_choice == '2':
             q.getCategories()
